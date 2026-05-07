@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { SCHEDULE, WORKOUTS, DAYS_SHORT } from '../data/workouts.js'
-import { useLocalStorage, todayKey, workoutKey } from '../hooks/useLocalStorage.js'
+import { useLocalStorage, todayKey, workoutKey, dateForDow } from '../hooks/useLocalStorage.js'
 
 function SetDot({ done, onClick }) {
   return (
@@ -64,47 +64,63 @@ export default function Workout() {
 
   const [workoutLog, setWorkoutLog] = useLocalStorage(workoutKey(dateStr), {
     completed: false,
-    exercises: {}
+    exercises: {},
+    completedExArr: [],
+    run: { distance: '', time: '' }
   })
 
-  const [setsDone, setSetsDoneState] = useState({}) // { exIdx: count }
-  const [completedEx, setCompletedEx] = useState(new Set())
-  const [runDistance, setRunDistance] = useState('')
-  const [runTime, setRunTime] = useState('')
+  // Derive UI state from workoutLog — only restore today's progress when viewing today
+  const setsDone    = selectedDow === dow ? (workoutLog.exercises    || {}) : {}
+  const completedEx = new Set(selectedDow === dow ? (workoutLog.completedExArr || []) : [])
+  const runDistance = selectedDow === dow ? (workoutLog.run?.distance ?? '') : ''
+  const runTime     = selectedDow === dow ? (workoutLog.run?.time     ?? '') : ''
+
+  // Per-day completion status for the week selector (today's from reactive state)
+  const weekCompletions = Array.from({ length: 7 }, (_, i) => {
+    if (i === dow) return workoutLog.completed
+    try {
+      const stored = localStorage.getItem(workoutKey(dateForDow(i)))
+      return stored ? JSON.parse(stored).completed : false
+    } catch { return false }
+  })
 
   const sched = SCHEDULE[selectedDow]
   const workout = sched.workout ? WORKOUTS[sched.workout] : null
 
   const handleSelectDay = (d) => {
     setSelectedDow(d)
-    setSetsDoneState({})
-    setCompletedEx(new Set())
   }
 
   const handleTickSet = (exIdx, setIdx, totalSets) => {
     const newCount = setIdx + 1
-    setSetsDoneState(prev => ({ ...prev, [exIdx]: newCount }))
-    if (newCount >= totalSets) {
-      setCompletedEx(prev => new Set([...prev, exIdx]))
-    }
+    setWorkoutLog(prev => ({
+      ...prev,
+      exercises: { ...prev.exercises, [exIdx]: newCount },
+      completedExArr: newCount >= totalSets
+        ? [...new Set([...(prev.completedExArr || []), exIdx])]
+        : (prev.completedExArr || [])
+    }))
   }
 
   const handleToggle = (exIdx, totalSets) => {
-    setCompletedEx(prev => {
-      const next = new Set(prev)
-      if (next.has(exIdx)) {
-        next.delete(exIdx)
-        setSetsDoneState(p => ({ ...p, [exIdx]: 0 }))
-      } else {
-        next.add(exIdx)
-        setSetsDoneState(p => ({ ...p, [exIdx]: totalSets }))
+    setWorkoutLog(prev => {
+      const arr = prev.completedExArr || []
+      const isCompleted = arr.includes(exIdx)
+      return {
+        ...prev,
+        exercises: { ...prev.exercises, [exIdx]: isCompleted ? 0 : totalSets },
+        completedExArr: isCompleted ? arr.filter(i => i !== exIdx) : [...arr, exIdx]
       }
-      return next
     })
   }
 
   const handleMarkComplete = () => {
-    setWorkoutLog({ completed: true, type: sched.workout, date: dateStr })
+    setWorkoutLog(prev => ({
+      ...prev,
+      completed: true,
+      type: sched.workout,
+      date: dateStr
+    }))
   }
 
   const tagClass = `tag-${sched.type}`
@@ -141,6 +157,9 @@ export default function Workout() {
                   marginBottom: 3
                 }}>{d}</div>
                 <div style={{ fontSize: '1rem' }}>{s.icon}</div>
+                {weekCompletions[i] && s.workout && (
+                  <div style={{ fontSize: '0.55rem', color: 'var(--green)', marginTop: 2 }}>✓</div>
+                )}
               </div>
             )
           })}
@@ -173,14 +192,16 @@ export default function Workout() {
                 <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 4 }}>Distance (miles)</div>
                 <input
                   type="number" step="0.1" placeholder="2.5"
-                  value={runDistance} onChange={e => setRunDistance(e.target.value)}
+                  value={runDistance}
+                  onChange={e => setWorkoutLog(prev => ({ ...prev, run: { ...prev.run, distance: e.target.value } }))}
                 />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 4 }}>Time (min)</div>
                 <input
                   type="number" placeholder="22"
-                  value={runTime} onChange={e => setRunTime(e.target.value)}
+                  value={runTime}
+                  onChange={e => setWorkoutLog(prev => ({ ...prev, run: { ...prev.run, time: e.target.value } }))}
                 />
               </div>
             </div>

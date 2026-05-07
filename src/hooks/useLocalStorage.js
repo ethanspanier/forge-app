@@ -39,3 +39,10 @@ export function workoutKey(dateStr) {
 export function nutritionKey(dateStr) {
   return `nutrition_${dateStr}`
 }
+
+export function dateForDow(targetDow) {
+  const now = new Date()
+  const target = new Date(now)
+  target.setDate(now.getDate() + (targetDow - now.getDay()))
+  return target.toISOString().slice(0, 10)
+}
