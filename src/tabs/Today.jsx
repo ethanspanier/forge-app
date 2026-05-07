@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { SCHEDULE, DAYS_SHORT, WORKOUTS } from '../data/workouts.js'
 import { MACRO_GOALS } from '../data/foods.js'
-import { useLocalStorage, todayKey, nutritionKey, workoutKey } from '../hooks/useLocalStorage.js'
+import { useLocalStorage, todayKey, nutritionKey, workoutKey, dateForDow } from '../hooks/useLocalStorage.js'
 
 const CIRCUMFERENCE = 2 * Math.PI * 44 // r=44
 
@@ -91,6 +91,15 @@ export default function Today({ navigate }) {
 
   const tagClass = `tag-${sched.type}`
 
+  // Per-day completion status for this week (today's from reactive state)
+  const weekCompletions = Array.from({ length: 7 }, (_, i) => {
+    if (i === dow) return workoutLog?.completed || false
+    try {
+      const stored = localStorage.getItem(workoutKey(dateForDow(i)))
+      return stored ? JSON.parse(stored).completed : false
+    } catch { return false }
+  })
+
   // Build this-week summary (Sun = 0 … Sat = 6)
   const weekCells = DAYS_SHORT.map((d, i) => {
     const s = SCHEDULE[i]
@@ -112,6 +121,9 @@ export default function Today({ navigate }) {
         }}>{d}</div>
         <div style={{ fontSize: '1.1rem', marginBottom: 2 }}>{s.icon}</div>
         <div style={{ fontSize: '0.58rem', color: 'var(--muted)', lineHeight: 1.2 }}>{s.label.split(' ')[0]}</div>
+        {weekCompletions[i] && s.workout && (
+          <div style={{ fontSize: '0.55rem', color: 'var(--green)', marginTop: 2 }}>✓</div>
+        )}
       </div>
     )
   })
