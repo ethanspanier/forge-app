@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0e0f13;
+  --surface: #16181f;
+  --surface2: #1e2029;
+  --border: #2a2d38;
+  --accent: #c8f53e;
+  --accent2: #3ee8f5;
+  --text: #f0f1f5;
+  --muted: #6b7280;
+  --red: #f53e3e;
+  --orange: #f5903e;
+  --green: #3ef587;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(200, 245, 62, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(62, 232, 245, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Reusable component classes */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.accent-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  color: #000;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+  letter-spacing: 0.3px;
+}
+.accent-btn:hover { opacity: 0.85; }
+.accent-btn:active { opacity: 0.7; }
+
+.bar-track {
+  height: 5px;
+  background: var(--surface2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+input, select, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  width: 100%;
+  transition: border-color 0.15s;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent2);
+}
+input::placeholder { color: var(--muted); }
+select option { background: var(--surface2); }
+
+/* Workout tag variants */
+.tag-lift   { background: rgba(200,245,62,0.15); color: var(--accent);  border: 1px solid rgba(200,245,62,0.3); }
+.tag-cardio { background: rgba(62,232,245,0.15); color: var(--accent2); border: 1px solid rgba(62,232,245,0.3); }
+.tag-rest   { background: rgba(107,114,128,0.15); color: var(--muted);  border: 1px solid rgba(107,114,128,0.3); }
+.tag-activity { background: rgba(245,144,62,0.15); color: var(--orange); border: 1px solid rgba(245,144,62,0.3); }
+.tag-flex   { background: rgba(62,232,245,0.15); color: var(--accent2); border: 1px solid rgba(62,232,245,0.3); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Safe area helpers */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 56px);
+}
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
