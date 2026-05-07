@@ -70,14 +70,14 @@ export default function Workout() {
   })
 
   // Derive UI state from workoutLog — only restore today's progress when viewing today
-  const setsDone    = selectedDow === dow ? (workoutLog.exercises    || {}) : {}
-  const completedEx = new Set(selectedDow === dow ? (workoutLog.completedExArr || []) : [])
-  const runDistance = selectedDow === dow ? (workoutLog.run?.distance ?? '') : ''
-  const runTime     = selectedDow === dow ? (workoutLog.run?.time     ?? '') : ''
+  const setsDone    = selectedDow === dow ? (workoutLog?.exercises    || {}) : {}
+  const completedEx = new Set(selectedDow === dow ? (workoutLog?.completedExArr || []) : [])
+  const runDistance = selectedDow === dow ? (workoutLog?.run?.distance ?? '') : ''
+  const runTime     = selectedDow === dow ? (workoutLog?.run?.time     ?? '') : ''
 
   // Per-day completion status for the week selector (today's from reactive state)
   const weekCompletions = Array.from({ length: 7 }, (_, i) => {
-    if (i === dow) return workoutLog.completed
+    if (i === dow) return workoutLog?.completed || false
     try {
       const stored = localStorage.getItem(workoutKey(dateForDow(i)))
       return stored ? JSON.parse(stored).completed : false
@@ -94,21 +94,21 @@ export default function Workout() {
   const handleTickSet = (exIdx, setIdx, totalSets) => {
     const newCount = setIdx + 1
     setWorkoutLog(prev => ({
-      ...prev,
-      exercises: { ...prev.exercises, [exIdx]: newCount },
+      ...(prev || {}),
+      exercises: { ...(prev?.exercises || {}), [exIdx]: newCount },
       completedExArr: newCount >= totalSets
-        ? [...new Set([...(prev.completedExArr || []), exIdx])]
-        : (prev.completedExArr || [])
+        ? [...new Set([...(prev?.completedExArr || []), exIdx])]
+        : (prev?.completedExArr || [])
     }))
   }
 
   const handleToggle = (exIdx, totalSets) => {
     setWorkoutLog(prev => {
-      const arr = prev.completedExArr || []
+      const arr = prev?.completedExArr || []
       const isCompleted = arr.includes(exIdx)
       return {
-        ...prev,
-        exercises: { ...prev.exercises, [exIdx]: isCompleted ? 0 : totalSets },
+        ...(prev || {}),
+        exercises: { ...(prev?.exercises || {}), [exIdx]: isCompleted ? 0 : totalSets },
         completedExArr: isCompleted ? arr.filter(i => i !== exIdx) : [...arr, exIdx]
       }
     })
@@ -116,7 +116,7 @@ export default function Workout() {
 
   const handleMarkComplete = () => {
     setWorkoutLog(prev => ({
-      ...prev,
+      ...(prev || {}),
       completed: true,
       type: sched.workout,
       date: dateStr
@@ -224,7 +224,7 @@ export default function Workout() {
 
           {/* Mark complete */}
           <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
-            {workoutLog.completed && selectedDow === dow ? (
+            {workoutLog?.completed && selectedDow === dow ? (
               <div style={{
                 padding: '10px 16px', background: 'rgba(62,245,135,0.1)',
                 border: '1px solid rgba(62,245,135,0.3)', borderRadius: 8,

@@ -74,7 +74,7 @@ export default function Today({ navigate }) {
   const dateDisplay = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
   const [nutrition] = useLocalStorage(nutritionKey(dateStr), { breakfast: [], lunch: [], dinner: [], snacks: [] })
-  const [workoutLog] = useLocalStorage(workoutKey(dateStr), null)
+  const [workoutLog] = useLocalStorage(workoutKey(dateStr), { completed: false })
 
   const sched = SCHEDULE[dow]
 
